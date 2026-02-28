@@ -59,11 +59,19 @@ void Git::init() {
 }
 
 void Git::add(string filename) {
-    if (filesystem::is_regular_file(filename)) {
-        filesystem::copy_file(filename, ".mygit/staging_area/" + filename, filesystem::copy_options::overwrite_existing);
-    } else {
+    if (!filesystem::is_regular_file(filename)) {
         cerr << "Error: " << filename << " does not exist." << endl;
+        return;
     }
+
+    string base_name = filesystem::path(filename).filename().string();
+    filesystem::path dst = filesystem::path(".mygit/staging_area") / base_name;
+
+    if (filesystem::exists(dst)) {
+        filesystem::remove(dst);
+    }
+
+    filesystem::copy_file(filename, dst);
     
 }
 void Git::commit(string id, bool is_sentinel, string log_massage) {
