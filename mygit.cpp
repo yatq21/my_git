@@ -1,11 +1,16 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <fstream>
+#include <filesystem>
+#include <string>
+#include <windows.h>
 #include "git.hpp"
 using namespace std;
 
 int main(int argc, char *argv[]) {
+    SetConsoleOutputCP(65001);
     Git git;
     if (argc >= 2) {
-        string command = argv[1];
+        string command = string(argv[1]);
         if (command == "help") {
             git.help();
         } else if (command == "init") {
@@ -27,11 +32,6 @@ int main(int argc, char *argv[]) {
     }
 
     
-
-
-
-
-
     return 0;
 }
 
