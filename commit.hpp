@@ -45,6 +45,7 @@ class Commit {
 
 };
 
+// 序列化函数
 void Commit::save_commit(string path) {
     // 生成提交文件路径
     string commit_file_path = path + "/" + this->id + ".txt";
@@ -62,7 +63,7 @@ void Commit::save_commit(string path) {
         commit_file.close();
     }
 }
-
+// 反序列化函数
 void Commit::load_commit(string commit_id) {
     string commit_file_path = ".mygit/commits/" + commit_id + ".txt";
     ifstream commit_file(commit_file_path);

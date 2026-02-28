@@ -58,8 +58,7 @@ void Git::init() {
     this->commit("111", true, "Initial commit");
 }
 void Git::add() {
-
-
+    filesystem::copy(".", ".mygit/staging_area", filesystem::copy_options::recursive | filesystem::copy_options::overwrite_existing);
 }
 void Git::commit(string id, bool is_sentinel, string log_massage) {
     Commit *now_commit = new Commit(id, is_sentinel, log_massage);
