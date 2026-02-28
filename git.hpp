@@ -12,7 +12,7 @@ class Git {
         Commit* sentinel_commit;
         void help();
         void init();
-        void add();
+        void add(string filename);
         // 哨兵节点
         void commit(string id, bool is_sentinel, string log_massage);
         // 普通commit节点
@@ -57,8 +57,14 @@ void Git::init() {
     filesystem::create_directory(".mygit/HEAD");
     this->commit("111", true, "Initial commit");
 }
-void Git::add() {
-    filesystem::copy(".", ".mygit/staging_area", filesystem::copy_options::recursive | filesystem::copy_options::overwrite_existing);
+
+void Git::add(string filename) {
+    if (filesystem::is_regular_file(filename)) {
+        filesystem::copy_file(filename, ".mygit/staging_area/" + filename, filesystem::copy_options::overwrite_existing);
+    } else {
+        cerr << "Error: " << filename << " does not exist." << endl;
+    }
+    
 }
 void Git::commit(string id, bool is_sentinel, string log_massage) {
     Commit *now_commit = new Commit(id, is_sentinel, log_massage);

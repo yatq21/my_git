@@ -24,7 +24,10 @@ int main(int argc, char *argv[]) {
             
         } else if (command == "add") {
             // mygit add <filename>
-            git.add();
+            // 此处add仅支持单文件的添加,无法递归.
+            for (int i = 2; i < argc; i++) {
+                git.add(argv[i]);
+            }
         } else if (command == "commit") {
             // mygit commit -m "message"
             //git.commit();
