@@ -2,16 +2,21 @@
 #include <fstream>
 #include <filesystem>
 #include <string>
+#include "commit.hpp"
 using namespace std;
 
 
 
 class Git {
     public:
+        Commit* sentinel_commit;
         void help();
         void init();
         void add();
-        void commit();
+        // 哨兵节点
+        void commit(bool is_sentinel, string log_massage);
+        // 普通commit节点
+        void commit(string log_massage, Commit* parent_commit);
         void log();
         void status();
 };
@@ -46,11 +51,24 @@ void Git::help() {
 }
 
 void Git::init() {
-    filesystem::create_directory(".git");
-    filesystem::create_directory(".git/staging_area");
-    filesystem::create_directory(".git/commits");
+    filesystem::create_directory(".mygit");
+    filesystem::create_directory(".mygit/staging_area");
+    filesystem::create_directory(".mygit/commits");
+    Git::commit(true, "Initial commit");
 }
-void Git::add() {}
-void Git::commit() {}
+void Git::add() {
+
+
+}
+void Git::commit(bool is_sentinel, string log_massage) {
+    Commit *now_commit = new Commit(is_sentinel, log_massage);
+    this->sentinel_commit = now_commit;
+}
+
+void Git::commit(string log_massage, Commit* parent_commit) {
+    Commit *now_commit = new Commit(log_massage, parent_commit);
+}
+
+
 void Git::log() {}
 void Git::status() {}
