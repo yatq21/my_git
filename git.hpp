@@ -14,9 +14,9 @@ class Git {
         void init();
         void add();
         // 哨兵节点
-        void commit(bool is_sentinel, string log_massage);
+        void commit(string id, bool is_sentinel, string log_massage);
         // 普通commit节点
-        void commit(string log_massage, Commit* parent_commit);
+        void commit(string id, string log_massage, Commit* parent_commit);
         void log();
         void status();
 };
@@ -54,19 +54,21 @@ void Git::init() {
     filesystem::create_directory(".mygit");
     filesystem::create_directory(".mygit/staging_area");
     filesystem::create_directory(".mygit/commits");
-    Git::commit(true, "Initial commit");
+    filesystem::create_directory(".mygit/HEAD");
+    this->commit("111", true, "Initial commit");
 }
 void Git::add() {
 
 
 }
-void Git::commit(bool is_sentinel, string log_massage) {
-    Commit *now_commit = new Commit(is_sentinel, log_massage);
+void Git::commit(string id, bool is_sentinel, string log_massage) {
+    Commit *now_commit = new Commit(id, is_sentinel, log_massage);
     this->sentinel_commit = now_commit;
+    this->sentinel_commit->save_commit(".mygit/commits");
 }
 
-void Git::commit(string log_massage, Commit* parent_commit) {
-    Commit *now_commit = new Commit(log_massage, parent_commit);
+void Git::commit(string id, string log_massage, Commit* parent_commit) {
+    Commit *now_commit = new Commit(id, log_massage, parent_commit);
 }
 
 
