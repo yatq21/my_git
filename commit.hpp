@@ -18,6 +18,7 @@ class Commit {
     public:
         string id;
         bool is_sentinel = false;
+        bool is_head = false;
         string log_massage = "";
         string timestamp = "";
         Commit* parent_commit = nullptr;
@@ -32,9 +33,13 @@ class Commit {
         // 普通commit节点
         Commit(string id, string log_massage, Commit* parent_commit) {
             this->id = id;
+            this->is_head = true;
             this->log_massage = log_massage;
             this->timestamp = get_formatted_time();
             this->parent_commit = parent_commit;
+            if (this->parent_commit != nullptr) {
+                this->parent_commit->is_head = false;
+            }
             // 防止空指针异常
             if (this->parent_commit != nullptr) {
                 this->parent_commit->next_commit = this;
@@ -48,7 +53,8 @@ class Commit {
 // 序列化函数
 void Commit::save_commit(string path) {
     // 生成提交文件路径
-    string commit_file_path = path + "/" + this->id + ".txt";
+    filesystem::create_directory(path + "/" + this->id);
+    string commit_file_path = path + "/" + this->id + "/" + "commits.txt";
     ofstream commit_file(commit_file_path);
     if (commit_file.is_open()) {
         commit_file << "Commit ID: " << this->id << endl;
@@ -65,7 +71,7 @@ void Commit::save_commit(string path) {
 }
 // 反序列化函数
 void Commit::load_commit(string commit_id) {
-    string commit_file_path = ".mygit/commits/" + commit_id + ".txt";
+    string commit_file_path = ".mygit/commits/" + commit_id + "/commits.txt";
     ifstream commit_file(commit_file_path);
     if (!commit_file.is_open()) {
         cerr << "Failed to open commit file: " << commit_file_path << endl;

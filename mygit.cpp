@@ -3,6 +3,7 @@
 #include <string>
 #include <windows.h>
 #include "git.hpp"
+#include "hash_utils.hpp"
 using namespace std;
 
 int main(int argc, char *argv[]) {
@@ -30,7 +31,18 @@ int main(int argc, char *argv[]) {
             }
         } else if (command == "commit") {
             // mygit commit -m "message"
-            //git.commit();
+            if (argc >= 4 && string(argv[2]) == "-m") {
+                string log_message = argv[3];
+                string commit_id = hash_utils::compute_commit_id_from_staging(".mygit/staging_area");
+                if (commit_id.empty()) {
+                    cout << "Staging area is empty, nothing to commit." << endl;
+                    return 0;
+                }
+                git.commit(commit_id, log_message, git.head_commit);
+            } else {
+                cout << "Usage: mygit commit -m \"message\"" << endl;
+            }
+            
         } else if (command == "log") {
             // mygit log
             git.log();

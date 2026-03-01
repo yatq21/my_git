@@ -9,7 +9,10 @@ using namespace std;
 
 class Git {
     public:
-        Commit* sentinel_commit;
+        // 哨兵节点，指向初始提交
+        Commit* sentinel_commit = nullptr;
+        // 当前HEAD指向的commit节点
+        Commit* head_commit = nullptr;
         void help();
         void init();
         void add(string filename);
@@ -35,7 +38,7 @@ void Git::help() {
 
     cout << banner << std::endl;
     cout << ">> Simple VCS | Author: yatq | Version: 1.0 <<" << std::endl;
-    cout << "\n可用命令：" << std::endl;
+    cout << "\nUsage:" << std::endl;
     cout << "  init    初始化仓库（创建 .mygit 目录）" << std::endl;
     cout << "  add     将指定文件加入暂存区" << std::endl;
     cout << "  commit  提交暂存区并生成提交记录" << std::endl;
@@ -54,7 +57,7 @@ void Git::init() {
     filesystem::create_directory(".mygit");
     filesystem::create_directory(".mygit/staging_area");
     filesystem::create_directory(".mygit/commits");
-    filesystem::create_directory(".mygit/HEAD");
+    std::ofstream(".mygit/HEAD").close();
     this->commit("111", true, "Initial commit");
 }
 
@@ -77,11 +80,14 @@ void Git::add(string filename) {
 void Git::commit(string id, bool is_sentinel, string log_massage) {
     Commit *now_commit = new Commit(id, is_sentinel, log_massage);
     this->sentinel_commit = now_commit;
+    this->head_commit = now_commit;
     this->sentinel_commit->save_commit(".mygit/commits");
 }
 
 void Git::commit(string id, string log_massage, Commit* parent_commit) {
     Commit *now_commit = new Commit(id, log_massage, parent_commit);
+    this->head_commit = now_commit;
+    this->head_commit->save_commit(".mygit/commits");
 }
 
 
