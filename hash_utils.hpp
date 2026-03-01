@@ -93,6 +93,17 @@ inline std::string sha1_hex(const std::vector<uint8_t>& input) {
     return oss.str();
 }
 
+inline std::string compute_file_sha1(const std::filesystem::path& file_path) {
+    if (!std::filesystem::exists(file_path) || !std::filesystem::is_regular_file(file_path)) {
+        return "";
+    }
+
+    std::ifstream in(file_path, std::ios::binary);
+    std::vector<char> bytes((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    std::vector<uint8_t> data(bytes.begin(), bytes.end());
+    return sha1_hex(data);
+}
+
 inline std::string compute_commit_id_from_staging(const std::filesystem::path& staging_dir) {
     if (!std::filesystem::exists(staging_dir) || !std::filesystem::is_directory(staging_dir)) {
         return "";

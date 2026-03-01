@@ -46,6 +46,25 @@ class Commit {
             if (this->parent_commit != nullptr) {
                 this->parent_commit->next_commit = this;
             }
+
+            filesystem::path blob_dir = filesystem::path(".mygit/commits") / this->id / "blob";
+            filesystem::create_directories(blob_dir);
+            filesystem::path staging_dir = ".mygit/staging_area";
+            if (filesystem::exists(staging_dir) && filesystem::is_directory(staging_dir)) {
+                for (const auto& entry : filesystem::directory_iterator(staging_dir)) {
+                    if (entry.is_regular_file()) {
+                        filesystem::copy_file(
+                            entry.path(),
+                            blob_dir / entry.path().filename(),
+                            filesystem::copy_options::overwrite_existing
+                        );
+                    }
+                }
+
+                for (const auto& entry : filesystem::directory_iterator(staging_dir)) {
+                    filesystem::remove_all(entry.path());
+                }
+            }
         }
         void save_commit(string path);
         void load_commit(string commit_id);

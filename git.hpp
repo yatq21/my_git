@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <string>
 #include "commit.hpp"
+#include "hash_utils.hpp"
 using namespace std;
 
 
@@ -93,6 +94,7 @@ void Git::init() {
     filesystem::create_directory(".mygit/staging_area");
     filesystem::create_directory(".mygit/commits");
     std::ofstream(".mygit/HEAD").close();
+    // sentinel节点，ID=0, 指向初始提交
     this->commit("0", true, "Initial commit");
 }
 
@@ -102,14 +104,29 @@ void Git::add(string filename) {
         return;
     }
 
-    string base_name = filesystem::path(filename).filename().string();
-    filesystem::path dst = filesystem::path(".mygit/staging_area") / base_name;
-
-    if (filesystem::exists(dst)) {
-        filesystem::remove(dst);
+    if (this->head_commit == nullptr) {
+        this->load_head_commit();
     }
 
-    filesystem::copy_file(filename, dst);
+    string base_name = filesystem::path(filename).filename().string();
+    filesystem::path dst = filesystem::path(".mygit/staging_area") / base_name;
+    filesystem::path head_blob = filesystem::path(".mygit/commits") /
+        (this->head_commit ? this->head_commit->id : "") /
+        "blob" /
+        base_name;
+
+    // 判断是否与HEAD版本相同，如果相同则不复制到暂存区
+    if (this->head_commit != nullptr && filesystem::is_regular_file(head_blob) &&
+        hash_utils::compute_file_sha1(filename) == hash_utils::compute_file_sha1(head_blob)) {
+        cout << "File " << filename << " is unchanged, skipping." << endl;
+        return;
+    } else {
+        if (filesystem::exists(dst)) {
+            filesystem::remove(dst);
+        }
+
+        filesystem::copy_file(filename, dst);
+    }
     
 }
 void Git::commit(string id, bool is_sentinel, string log_massage) {
@@ -137,6 +154,7 @@ void Git::commit(string id, string log_massage, Commit* parent_commit) {
 
 
 void Git::log() {
+
 
 }
 void Git::status() {}
