@@ -18,7 +18,6 @@ class Commit {
     public:
         string id;
         bool is_sentinel = false;
-        bool is_head = false;
         string log_massage = "";
         string timestamp = "";
         string parent_commit_id = "";
@@ -28,7 +27,6 @@ class Commit {
         Commit(string id, bool is_sentinel, string log_massage) {
             this->id = id;
             this->is_sentinel = is_sentinel;
-            this->is_head = true;
             this->log_massage = log_massage;
             this->timestamp = get_formatted_time();
             this->parent_commit_id = "None";
@@ -36,12 +34,10 @@ class Commit {
         // 普通commit节点
         Commit(string id, string log_massage, Commit* parent_commit) {
             this->id = id;
-            this->is_head = true;
             this->log_massage = log_massage;
             this->timestamp = get_formatted_time();
             this->parent_commit = parent_commit;
             if (this->parent_commit != nullptr) {
-                this->parent_commit->is_head = false;
                 this->parent_commit_id = this->parent_commit->id;
             } else {
                 this->parent_commit_id = "None";
@@ -65,7 +61,6 @@ void Commit::save_commit(string path) {
     if (commit_file.is_open()) {
         commit_file << "Commit ID: " << this->id << endl;
         commit_file << "Is Sentinel: " << (this->is_sentinel ? "Yes" : "No") << endl;
-        commit_file << "Is Head: " << (this->is_head ? "Yes" : "No") << endl;
         commit_file << "Log Message: " << this->log_massage << endl;
         commit_file << "Timestamp: " << this->timestamp << endl;
         if (this->parent_commit != nullptr) {
@@ -89,7 +84,6 @@ void Commit::load_commit(string commit_id) {
 
     this->id = commit_id;
     this->is_sentinel = false;
-    this->is_head = false;
     this->log_massage = "";
     this->timestamp = "";
     this->parent_commit_id = "None";
@@ -102,8 +96,6 @@ void Commit::load_commit(string commit_id) {
             this->id = line.substr(11);
         } else if (line.rfind("Is Sentinel: ", 0) == 0) {
             this->is_sentinel = (line.substr(13) == "Yes");
-        } else if (line.rfind("Is Head: ", 0) == 0) {
-            this->is_head = (line.substr(9) == "Yes");
         } else if (line.rfind("Log Message: ", 0) == 0) {
             this->log_massage = line.substr(13);
         } else if (line.rfind("Timestamp: ", 0) == 0) {
