@@ -45,6 +45,10 @@ class Git {
             this->load_commit(commit_id);
         }
 
+        void load_sentinel_commit() {
+            this->load_commit("0");
+        }
+
         void load_commit(string commit_id) {
             if (commit_id.empty()) {
                 this->head_commit = nullptr;
@@ -53,9 +57,10 @@ class Git {
 
             Commit* restored = new Commit(commit_id, false, "");
             restored->load_commit(commit_id);
-            this->head_commit = restored;
             if (restored->is_sentinel) {
                 this->sentinel_commit = restored;
+            } else {
+                this->head_commit = restored;
             }
         }
 };
@@ -154,7 +159,44 @@ void Git::commit(string id, string log_massage, Commit* parent_commit) {
 
 
 void Git::log() {
+    if (this->head_commit == nullptr) {
+        this->load_head_commit();
+    }
 
+    if (this->head_commit == nullptr) {
+        cout << "No commits found." << endl;
+        return;
+    }
+
+    string current_id = this->head_commit->id;
+    while (!current_id.empty() && current_id != "None") {
+        filesystem::path commit_file_path = filesystem::path(".mygit/commits") / current_id / "commit.txt";
+        ifstream commit_file(commit_file_path);
+        if (!commit_file.is_open()) {
+            cerr << "Failed to open commit file: " << commit_file_path.string() << endl;
+            return;
+        }
+
+        string parent_id = "None";
+        string line;
+        while (getline(commit_file, line)) {
+            if (line.rfind("Parent Commit ID: ", 0) == 0) {
+                parent_id = line.substr(18);
+                if (parent_id == "None") {
+                    continue;
+                }
+            }
+            cout << line << endl;
+        }
+        commit_file.close();
+
+        if (parent_id == "None") {
+            break;
+        }
+
+        cout << endl;
+        current_id = parent_id;
+    }
 
 }
 void Git::status() {

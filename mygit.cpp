@@ -39,8 +39,8 @@ int main(int argc, char *argv[]) {
                     return 0;
                 }
                 git.load_head_commit();
-                git.load_commit("0");
-                    
+                git.load_sentinel_commit();
+                
                 git.commit(commit_id, log_message, git.head_commit);
             } else {
                 cout << "Usage: mygit commit -m \"message\"" << endl;

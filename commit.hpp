@@ -20,7 +20,6 @@ class Commit {
         bool is_sentinel = false;
         string log_massage = "";
         string timestamp = "";
-        string parent_commit_id = "";
         Commit* parent_commit = nullptr;
         Commit* next_commit = nullptr;
         // 哨兵节点
@@ -29,7 +28,6 @@ class Commit {
             this->is_sentinel = is_sentinel;
             this->log_massage = log_massage;
             this->timestamp = get_formatted_time();
-            this->parent_commit_id = "None";
         }
         // 普通commit节点
         Commit(string id, string log_massage, Commit* parent_commit) {
@@ -37,11 +35,6 @@ class Commit {
             this->log_massage = log_massage;
             this->timestamp = get_formatted_time();
             this->parent_commit = parent_commit;
-            if (this->parent_commit != nullptr) {
-                this->parent_commit_id = this->parent_commit->id;
-            } else {
-                this->parent_commit_id = "None";
-            }
             // 防止空指针异常
             if (this->parent_commit != nullptr) {
                 this->parent_commit->next_commit = this;
@@ -84,8 +77,6 @@ void Commit::save_commit(string path) {
         commit_file << "Timestamp: " << this->timestamp << endl;
         if (this->parent_commit != nullptr) {
             commit_file << "Parent Commit ID: " << this->parent_commit->id << endl;
-        } else if (!this->parent_commit_id.empty()) {
-            commit_file << "Parent Commit ID: " << this->parent_commit_id << endl;
         } else {
             commit_file << "Parent Commit ID: " << "None" << endl;
         }
@@ -105,10 +96,10 @@ void Commit::load_commit(string commit_id) {
     this->is_sentinel = false;
     this->log_massage = "";
     this->timestamp = "";
-    this->parent_commit_id = "None";
     this->parent_commit = nullptr;
     this->next_commit = nullptr;
 
+    string parent_id = "None";
     string line;
     while (getline(commit_file, line)) {
         if (line.rfind("Commit ID: ", 0) == 0) {
@@ -120,8 +111,13 @@ void Commit::load_commit(string commit_id) {
         } else if (line.rfind("Timestamp: ", 0) == 0) {
             this->timestamp = line.substr(11);
         } else if (line.rfind("Parent Commit ID: ", 0) == 0) {
-            this->parent_commit_id = line.substr(18);
+            parent_id = line.substr(18);
         }
+    }
+
+    if (parent_id != "None" && !parent_id.empty()) {
+        this->parent_commit = new Commit(parent_id, false, "");
+        this->parent_commit->id = parent_id;
     }
 
     commit_file.close();
