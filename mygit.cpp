@@ -38,11 +38,17 @@ int main(int argc, char *argv[]) {
                     cout << "Staging area is empty, nothing to commit." << endl;
                     return 0;
                 }
+                git.load_commit(".mygit/HEAD");
+                
+
+
+
+
                 git.commit(commit_id, log_message, git.head_commit);
             } else {
                 cout << "Usage: mygit commit -m \"message\"" << endl;
             }
-            
+
         } else if (command == "log") {
             // mygit log
             git.log();

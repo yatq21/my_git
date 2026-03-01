@@ -22,6 +22,32 @@ class Git {
         void commit(string id, string log_massage, Commit* parent_commit);
         void log();
         void status();
+
+        
+        // 加载序列化的commit对象
+        void load_commit(string head_file_path) {
+            ifstream head_file(head_file_path);
+            if (!head_file.is_open()) {
+                cerr << "Error: cannot open HEAD file: " << head_file_path << endl;
+                return;
+            }
+
+            string commit_id;
+            getline(head_file, commit_id);
+            head_file.close();
+
+            if (commit_id.empty()) {
+                this->head_commit = nullptr;
+                return;
+            }
+
+            Commit* restored = new Commit(commit_id, false, "");
+            restored->load_commit(commit_id);
+            this->head_commit = restored;
+            if (restored->is_sentinel) {
+                this->sentinel_commit = restored;
+            }
+        }
 };
 
 
@@ -58,7 +84,7 @@ void Git::init() {
     filesystem::create_directory(".mygit/staging_area");
     filesystem::create_directory(".mygit/commits");
     std::ofstream(".mygit/HEAD").close();
-    this->commit("111", true, "Initial commit");
+    this->commit("0", true, "Initial commit");
 }
 
 void Git::add(string filename) {
@@ -81,15 +107,27 @@ void Git::commit(string id, bool is_sentinel, string log_massage) {
     Commit *now_commit = new Commit(id, is_sentinel, log_massage);
     this->sentinel_commit = now_commit;
     this->head_commit = now_commit;
+    ofstream head_file(".mygit/HEAD");
+    if (head_file.is_open()) {
+        head_file << this->head_commit->id << endl;
+        head_file.close();
+    }
     this->sentinel_commit->save_commit(".mygit/commits");
 }
 
 void Git::commit(string id, string log_massage, Commit* parent_commit) {
     Commit *now_commit = new Commit(id, log_massage, parent_commit);
     this->head_commit = now_commit;
+    ofstream head_file(".mygit/HEAD");
+    if (head_file.is_open()) {
+        head_file << this->head_commit->id << endl;
+        head_file.close();
+    }
     this->head_commit->save_commit(".mygit/commits");
 }
 
 
-void Git::log() {}
+void Git::log() {
+
+}
 void Git::status() {}

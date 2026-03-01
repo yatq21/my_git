@@ -21,14 +21,17 @@ class Commit {
         bool is_head = false;
         string log_massage = "";
         string timestamp = "";
+        string parent_commit_id = "";
         Commit* parent_commit = nullptr;
         Commit* next_commit = nullptr;
         // 哨兵节点
         Commit(string id, bool is_sentinel, string log_massage) {
             this->id = id;
             this->is_sentinel = is_sentinel;
+            this->is_head = true;
             this->log_massage = log_massage;
             this->timestamp = get_formatted_time();
+            this->parent_commit_id = "None";
         }
         // 普通commit节点
         Commit(string id, string log_massage, Commit* parent_commit) {
@@ -39,6 +42,9 @@ class Commit {
             this->parent_commit = parent_commit;
             if (this->parent_commit != nullptr) {
                 this->parent_commit->is_head = false;
+                this->parent_commit_id = this->parent_commit->id;
+            } else {
+                this->parent_commit_id = "None";
             }
             // 防止空指针异常
             if (this->parent_commit != nullptr) {
@@ -54,24 +60,27 @@ class Commit {
 void Commit::save_commit(string path) {
     // 生成提交文件路径
     filesystem::create_directory(path + "/" + this->id);
-    string commit_file_path = path + "/" + this->id + "/" + "commits.txt";
+    string commit_file_path = path + "/" + this->id + "/" + "commit.txt";
     ofstream commit_file(commit_file_path);
     if (commit_file.is_open()) {
         commit_file << "Commit ID: " << this->id << endl;
         commit_file << "Is Sentinel: " << (this->is_sentinel ? "Yes" : "No") << endl;
+        commit_file << "Is Head: " << (this->is_head ? "Yes" : "No") << endl;
         commit_file << "Log Message: " << this->log_massage << endl;
         commit_file << "Timestamp: " << this->timestamp << endl;
         if (this->parent_commit != nullptr) {
             commit_file << "Parent Commit ID: " << this->parent_commit->id << endl;
+        } else if (!this->parent_commit_id.empty()) {
+            commit_file << "Parent Commit ID: " << this->parent_commit_id << endl;
         } else {
-            commit_file << "Parent Commit ID: None" << endl;
+            commit_file << "Parent Commit ID: " << "None" << endl;
         }
         commit_file.close();
     }
 }
 // 反序列化函数
 void Commit::load_commit(string commit_id) {
-    string commit_file_path = ".mygit/commits/" + commit_id + "/commits.txt";
+    string commit_file_path = ".mygit/commits/" + commit_id + "/commit.txt";
     ifstream commit_file(commit_file_path);
     if (!commit_file.is_open()) {
         cerr << "Failed to open commit file: " << commit_file_path << endl;
@@ -80,8 +89,10 @@ void Commit::load_commit(string commit_id) {
 
     this->id = commit_id;
     this->is_sentinel = false;
+    this->is_head = false;
     this->log_massage = "";
     this->timestamp = "";
+    this->parent_commit_id = "None";
     this->parent_commit = nullptr;
     this->next_commit = nullptr;
 
@@ -91,10 +102,14 @@ void Commit::load_commit(string commit_id) {
             this->id = line.substr(11);
         } else if (line.rfind("Is Sentinel: ", 0) == 0) {
             this->is_sentinel = (line.substr(13) == "Yes");
+        } else if (line.rfind("Is Head: ", 0) == 0) {
+            this->is_head = (line.substr(9) == "Yes");
         } else if (line.rfind("Log Message: ", 0) == 0) {
             this->log_massage = line.substr(13);
         } else if (line.rfind("Timestamp: ", 0) == 0) {
             this->timestamp = line.substr(11);
+        } else if (line.rfind("Parent Commit ID: ", 0) == 0) {
+            this->parent_commit_id = line.substr(18);
         }
     }
 
