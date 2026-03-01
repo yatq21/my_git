@@ -23,12 +23,12 @@ class Git {
         void log();
         void status();
 
-        
+
         // 加载序列化的commit对象
-        void load_commit(string head_file_path) {
-            ifstream head_file(head_file_path);
+        void load_head_commit() {
+            ifstream head_file(".mygit/HEAD");
             if (!head_file.is_open()) {
-                cerr << "Error: cannot open HEAD file: " << head_file_path << endl;
+                cerr << "Error: cannot open HEAD file: .mygit/HEAD" << endl;
                 return;
             }
 
@@ -36,6 +36,15 @@ class Git {
             getline(head_file, commit_id);
             head_file.close();
 
+            if (commit_id.empty()) {
+                this->head_commit = nullptr;
+                return;
+            }
+
+            this->load_commit(commit_id);
+        }
+
+        void load_commit(string commit_id) {
             if (commit_id.empty()) {
                 this->head_commit = nullptr;
                 return;

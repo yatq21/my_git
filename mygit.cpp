@@ -38,7 +38,8 @@ int main(int argc, char *argv[]) {
                     cout << "Staging area is empty, nothing to commit." << endl;
                     return 0;
                 }
-                git.load_commit(".mygit/HEAD");
+                git.load_head_commit();
+                git.load_commit("0");
                 
 
 
