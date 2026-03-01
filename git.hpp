@@ -157,4 +157,53 @@ void Git::log() {
 
 
 }
-void Git::status() {}
+void Git::status() {
+    filesystem::path staging_dir = ".mygit/staging_area";
+    if (!filesystem::exists(staging_dir) || !filesystem::is_directory(staging_dir)) {
+        cout << "Staging area not found." << endl;
+        return;
+    }
+
+    if (this->head_commit == nullptr) {
+        this->load_head_commit();
+    }
+
+    bool has_file = false;
+    filesystem::path head_blob_dir;
+    if (this->head_commit != nullptr) {
+        head_blob_dir = filesystem::path(".mygit/commits") / this->head_commit->id / "blob";
+    }
+
+    cout << "Staged files:" << endl;
+    for (const auto& entry : filesystem::directory_iterator(staging_dir)) {
+        if (!entry.is_regular_file()) {
+            continue;
+        }
+
+        has_file = true;
+        string file_name = entry.path().filename().string();
+        string state = "new";
+        bool should_show = true;
+
+        if (this->head_commit != nullptr) {
+            filesystem::path head_file = head_blob_dir / file_name;
+            if (filesystem::is_regular_file(head_file)) {
+                string staging_hash = hash_utils::compute_file_sha1(entry.path());
+                string head_hash = hash_utils::compute_file_sha1(head_file);
+                if (staging_hash == head_hash) {
+                    should_show = false;
+                } else {
+                    state = "modified";
+                }
+            }
+        }
+
+        if (should_show) {
+            cout << "  " << state << " : " << file_name << endl;
+        }
+    }
+
+    if (!has_file) {
+        cout << "  (empty)" << endl;
+    }
+}
